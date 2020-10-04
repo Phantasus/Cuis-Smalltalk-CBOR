@@ -1,9 +1,9 @@
-'From Cuis 5.0 [latest update: #4360] on 4 October 2020 at 3:07:46 pm'!
+'From Cuis 5.0 [latest update: #4360] on 4 October 2020 at 4:37:09 pm'!
 'Description Provides an implementation of CBOR (the concise binary object representation) as defined in RFC 7049
 
 Author: Josef Philip Bernhart (jpb)
 License: MIT'!
-!provides: 'CBOR' 1 22!
+!provides: 'CBOR' 1 24!
 SystemOrganization addCategory: #CBOR!
 SystemOrganization addCategory: #'CBOR-Tests'!
 
@@ -18,18 +18,28 @@ TestCase subclass: #CborReaderTest
 CborReaderTest class
 	instanceVariableNames: ''!
 
-!classDefinition: #CborWriterTest category: #'CBOR-Tests'!
-TestCase subclass: #CborWriterTest
-	instanceVariableNames: ''
+!classDefinition: #CborObject category: #CBOR!
+Object subclass: #CborObject
+	instanceVariableNames: 'value'
 	classVariableNames: ''
 	poolDictionaries: ''
-	category: 'CBOR-Tests'!
-!classDefinition: 'CborWriterTest class' category: #'CBOR-Tests'!
-CborWriterTest class
+	category: 'CBOR'!
+!classDefinition: 'CborObject class' category: #CBOR!
+CborObject class
+	instanceVariableNames: ''!
+
+!classDefinition: #CborStreamer category: #CBOR!
+Object subclass: #CborStreamer
+	instanceVariableNames: 'currentStream'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'CBOR'!
+!classDefinition: 'CborStreamer class' category: #CBOR!
+CborStreamer class
 	instanceVariableNames: ''!
 
 !classDefinition: #CborReader category: #CBOR!
-StreamReader subclass: #CborReader
+CborStreamer subclass: #CborReader
 	instanceVariableNames: 'negativeIntegerReader unsignedIntegerReader simpleValueReader byteStringReader utf8StringReader arrayReader dictionaryReader taggedValueReader'
 	classVariableNames: ''
 	poolDictionaries: ''
@@ -39,7 +49,7 @@ CborReader class
 	instanceVariableNames: ''!
 
 !classDefinition: #CborValueReader category: #CBOR!
-StreamReader subclass: #CborValueReader
+CborStreamer subclass: #CborValueReader
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
@@ -128,18 +138,8 @@ CborValueReader subclass: #CborUtf8StringReader
 CborUtf8StringReader class
 	instanceVariableNames: ''!
 
-!classDefinition: #CborObject category: #CBOR!
-Object subclass: #CborObject
-	instanceVariableNames: 'value'
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'CBOR'!
-!classDefinition: 'CborObject class' category: #CBOR!
-CborObject class
-	instanceVariableNames: ''!
-
 !classDefinition: #CborWriter category: #CBOR!
-Object subclass: #CborWriter
+CborStreamer subclass: #CborWriter
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
@@ -148,16 +148,14 @@ Object subclass: #CborWriter
 CborWriter class
 	instanceVariableNames: ''!
 
-!classDefinition: #CborTypeTest category: #'CBOR-Tests'!
-Object subclass: #CborTypeTest
-	instanceVariableNames: ''
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'CBOR-Tests'!
-!classDefinition: 'CborTypeTest class' category: #'CBOR-Tests'!
-CborTypeTest class
-	instanceVariableNames: ''!
 
+!CborObject commentStamp: '<historical>' prior: 0!
+This object represents a container for cbor data. It's used to contain the information "the contained data is a CBOR object". Nothing more.
+
+This information can then be used by readers or writers to deserialize or serialize this nuanced information.!
+
+!CborStreamer commentStamp: '<historical>' prior: 0!
+Baseclass for encoders and decoder which work on a stream.!
 
 !CborReader commentStamp: '<historical>' prior: 0!
 A so called CBOR decoder according the RFC 7049 (https://tools.ietf.org/html/rfc7049)!
@@ -189,13 +187,10 @@ This value reader is intended to read major type 0 values, which are in the spec
 !CborUtf8StringReader commentStamp: '<historical>' prior: 0!
 This value reader is intended to read major type 3 values, which are in the specification of CBOR text strings of UTF-8 encoded values. In Cuis not all contained can be read as this would mean a fully unicode compliant base system.!
 
-!CborObject commentStamp: '<historical>' prior: 0!
-This object represents a container for cbor data. It's used to contain the information "the contained data is a CBOR object". Nothing more.
-
-This information can then be used by readers or writers to deserialize or serialize this nuanced information.!
-
 !CborWriter commentStamp: '<historical>' prior: 0!
-A so called CBOR encoder according the RFC 7049 (https://tools.ietf.org/html/rfc7049). It writes out objects according to the CBOR specification.!
+A so called CBOR encoder according the RFC 7049 (https://tools.ietf.org/html/rfc7049). It writes out objects according to the CBOR specification.
+
+Not yet implemented!
 
 !CborReaderTest methodsFor: 'as yet unclassified' stamp: 'jpb 9/19/2020 18:47:11'!
 setUp
@@ -1282,6 +1277,49 @@ testReadingAppendixExample9
 	self assert: LargePositiveInteger equals: value class.
 	self assert: value equals: 18446744073709551615.! !
 
+!CborObject methodsFor: 'as yet unclassified' stamp: 'jpb 10/3/2020 15:16:44'!
+initialize
+	value _ nil! !
+
+!CborObject methodsFor: 'as yet unclassified' stamp: 'jpb 10/3/2020 15:19:13'!
+is: querySymbol
+	^#CborObject = querySymbol or: [ super is: querySymbol ]! !
+
+!CborObject methodsFor: 'as yet unclassified' stamp: 'jpb 10/3/2020 15:16:53'!
+value
+	^value! !
+
+!CborObject methodsFor: 'as yet unclassified' stamp: 'jpb 10/3/2020 15:17:08'!
+value: newValue
+	value _ newValue ! !
+
+!CborObject class methodsFor: 'as yet unclassified' stamp: 'jpb 10/3/2020 15:16:22'!
+with: aCborItem
+	| newObject |
+	
+	newObject _ self new.
+	newObject value: aCborItem.
+	^newObject ! !
+
+!CborStreamer methodsFor: 'as yet unclassified' stamp: 'jpb 10/4/2020 16:20:31'!
+initializeWithStream: newStream
+	"Initializes the object with the new given input stream"
+	self initialize.
+	currentStream _ newStream.! !
+
+!CborStreamer class methodsFor: 'as yet unclassified' stamp: 'jpb 10/4/2020 16:19:17'!
+on: newStream
+	"Creates a new streamer object with the given input / output stream"
+	| streamer |
+	streamer _ self basicNew.
+	streamer initializeWithStream: newStream.
+	
+	^streamer! !
+
+!CborReader methodsFor: 'as yet unclassified' stamp: 'jpb 10/4/2020 16:36:51'!
+atEnd
+	^currentStream atEnd! !
+
 !CborReader methodsFor: 'as yet unclassified' stamp: 'jpb 9/19/2020 23:26:38'!
 findNextValueWith: leadingByte
 	"Returns the major type of a cbor initial data item"
@@ -1313,11 +1351,11 @@ initialize
 next
 	^self nextValue! !
 
-!CborReader methodsFor: 'as yet unclassified' stamp: 'jpb 9/20/2020 15:51:01'!
+!CborReader methodsFor: 'as yet unclassified' stamp: 'jpb 10/4/2020 16:21:51'!
 nextByte
 	"Returns the next byte"
 	
-	^readStream next bitAnd: 16rFF! !
+	^currentStream next bitAnd: 16rFF! !
 
 !CborReader methodsFor: 'as yet unclassified' stamp: 'jpb 10/4/2020 14:51:39'!
 nextValue
@@ -1356,10 +1394,10 @@ nextUnsignedInteger64Bit
 	
 	^(high bitShift: 32) bitOr: low.! !
 
-!CborValueReader methodsFor: 'stream - reading' stamp: 'jpb 9/20/2020 16:22:03'!
+!CborValueReader methodsFor: 'stream - reading' stamp: 'jpb 10/4/2020 16:35:55'!
 nextUnsignedInteger8Bit
 	"Reads a byte from the stream"
-	^readStream nextByte.! !
+	^currentStream nextByte.! !
 
 !CborValueReader methodsFor: 'as yet unclassified' stamp: 'jpb 9/19/2020 23:27:13'!
 findNextValueWith: leadingByte
@@ -1389,7 +1427,7 @@ findNextValueWith: leadingByte
 
 	31 = info ifTrue: [ ^self nextIndefiniteArray ].! !
 
-!CborArrayReader methodsFor: 'as yet unclassified' stamp: 'jpb 9/20/2020 21:45:30'!
+!CborArrayReader methodsFor: 'as yet unclassified' stamp: 'jpb 10/4/2020 16:22:12'!
 nextArrayWithLength: readLength
 	"Reads from the readStream a byte array with the given length"
 	| newArray |
@@ -1397,20 +1435,20 @@ nextArrayWithLength: readLength
 	
 	newArray _ Array new: readLength.
 	1 to: readLength do: [:idx | 
-		newArray at: idx put: readStream nextValue ].
+		newArray at: idx put: currentStream nextValue ].
 	
 	^newArray! !
 
-!CborArrayReader methodsFor: 'as yet unclassified' stamp: 'jpb 9/20/2020 21:54:14'!
+!CborArrayReader methodsFor: 'as yet unclassified' stamp: 'jpb 10/4/2020 16:22:20'!
 nextIndefiniteArray
 	"Reads an Array without a know size from the input stream"
 	
 	| readBuffer |
 	readBuffer _ OrderedCollection new.
 	
-	[ readStream atEnd not ]
+	[ currentStream atEnd not ]
 		whileTrue: [ |newValue |
-			newValue _ readStream nextValue.
+			newValue _ currentStream nextValue.
 			
 			newValue = #break
 				ifTrue: [ ^readBuffer asArray ]
@@ -1437,7 +1475,7 @@ findNextValueWith: leadingByte
 
 	31 = info ifTrue: [ ^self nextIndefiniteByteArray ].! !
 
-!CborByteStringReader methodsFor: 'as yet unclassified' stamp: 'jpb 9/20/2020 21:45:39'!
+!CborByteStringReader methodsFor: 'as yet unclassified' stamp: 'jpb 10/4/2020 16:33:50'!
 nextByteArrayWithLength: readLength
 	"Reads from the readStream a byte array with the given length"
 	| newByteArray |
@@ -1445,7 +1483,7 @@ nextByteArrayWithLength: readLength
 	
 	newByteArray _ ByteArray new: readLength.
 	1 to: readLength do: [:idx | 
-		newByteArray at: idx put: readStream nextByte ].
+		newByteArray at: idx put: currentStream nextByte ].
 	
 	^newByteArray! !
 
@@ -1455,13 +1493,13 @@ nextIndefiniteByteArray
 	
 	^ ByteArray streamContents: [:stream | self nextIndefiniteByteArrayOn: stream ]! !
 
-!CborByteStringReader methodsFor: 'as yet unclassified' stamp: 'jpb 9/20/2020 22:40:20'!
+!CborByteStringReader methodsFor: 'as yet unclassified' stamp: 'jpb 10/4/2020 16:34:01'!
 nextIndefiniteByteArrayOn: stream
 	"Reads the next indefinite string and streams it to the given stream"
 	
-	[ readStream atEnd not ]
+	[ currentStream atEnd not ]
 		whileTrue: [ |newChunk |
-			newChunk _ readStream nextValue.
+			newChunk _ currentStream nextValue.
 			
 			#break = newChunk ifTrue: [^self ].
 			
@@ -1487,7 +1525,7 @@ findNextValueWith: leadingByte
 
 	31 = info ifTrue: [ ^self nextIndefiniteDictionary ].! !
 
-!CborDictionaryReader methodsFor: 'as yet unclassified' stamp: 'jpb 10/3/2020 13:17:05'!
+!CborDictionaryReader methodsFor: 'as yet unclassified' stamp: 'jpb 10/4/2020 16:34:31'!
 nextDictionaryWithLength: readLength
 	"Reads in a dictionary"
 	
@@ -1495,15 +1533,15 @@ nextDictionaryWithLength: readLength
 	result _ Dictionary new.
 	readLength timesRepeat: [
 		| newKey newValue |
-		newKey _ readStream next.
-		newValue _ readStream next.
+		newKey _ currentStream next.
+		newValue _ currentStream next.
 		
 		"Only add keys which are not yet present. Double keys are invalid"
 		(result includes: newKey) ifFalse: [ result at: newKey put: newValue ]].
 	
 	^result! !
 
-!CborDictionaryReader methodsFor: 'as yet unclassified' stamp: 'jpb 10/4/2020 14:54:15'!
+!CborDictionaryReader methodsFor: 'as yet unclassified' stamp: 'jpb 10/4/2020 16:34:21'!
 nextIndefiniteDictionary
 	"Reads a Dictionary without a know size from the input stream"
 	
@@ -1511,12 +1549,12 @@ nextIndefiniteDictionary
 	
 	result _ Dictionary new.
 	
-	[ readStream atEnd not ]
+	[ currentStream atEnd not ]
 		whileTrue: [ |newKey newValue |
-			newKey _ readStream nextValue.
+			newKey _ currentStream nextValue.
 			newKey = #break ifTrue: [ ^result ].
 			
-			newValue _ readStream nextValue.
+			newValue _ currentStream nextValue.
 			newValue = #break ifTrue: [ ^result ].
 			
 			 "Only unique entries are supported by the RFC Spec. Double entries are prohibited"
@@ -1685,30 +1723,30 @@ findNextValueWith: leadingByte
 
 	31 = info ifTrue: [ ^self syntaxError ].! !
 
-!CborTaggedValueReader methodsFor: 'as yet unclassified' stamp: 'jpb 10/3/2020 15:06:03'!
+!CborTaggedValueReader methodsFor: 'as yet unclassified' stamp: 'jpb 10/4/2020 16:35:31'!
 nextBase16Conversion
 	"Reads from the input stream a bytearray"
-	^readStream next	! !
+	^currentStream next	! !
 
-!CborTaggedValueReader methodsFor: 'as yet unclassified' stamp: 'jpb 10/3/2020 15:05:51'!
+!CborTaggedValueReader methodsFor: 'as yet unclassified' stamp: 'jpb 10/4/2020 16:35:26'!
 nextBase64Conversion
 	"Reads a tagged bytearray from the input stream"
-	^readStream next! !
+	^currentStream next! !
 
 !CborTaggedValueReader methodsFor: 'as yet unclassified' stamp: 'jpb 10/3/2020 15:05:22'!
 nextBase64UrlConversion
 	"Reads from the input stream a tagged bytearray, which represent an URL"
 	^self next! !
 
-!CborTaggedValueReader methodsFor: 'as yet unclassified' stamp: 'jpb 10/3/2020 15:04:46'!
+!CborTaggedValueReader methodsFor: 'as yet unclassified' stamp: 'jpb 10/4/2020 16:35:22'!
 nextBigFloat
 	"Reads a tagged bytearray from the input stream, when possible converts it to a big float representation"
-	^readStream next! !
+	^currentStream next! !
 
-!CborTaggedValueReader methodsFor: 'as yet unclassified' stamp: 'jpb 10/3/2020 15:18:06'!
+!CborTaggedValueReader methodsFor: 'as yet unclassified' stamp: 'jpb 10/4/2020 16:35:17'!
 nextCBORItem
 	"Reads a tagged contained CBOR item from the input stream. It's supposed to be for documents in documents"
-	^CborObject with: readStream next.
+	^CborObject with: currentStream next.
 	
 	! !
 
@@ -1716,11 +1754,11 @@ nextCBORItem
 nextDecimalFraction
 	^self next! !
 
-!CborTaggedValueReader methodsFor: 'as yet unclassified' stamp: 'jpb 10/3/2020 14:30:13'!
+!CborTaggedValueReader methodsFor: 'as yet unclassified' stamp: 'jpb 10/4/2020 16:35:12'!
 nextEpochDateTime
 	"Reads from the input stream a tagged number float/integer which represents time relative to the UNIX epoch time"
 	| timeOffset |
-	timeOffset _ readStream next.
+	timeOffset _ currentStream next.
 	
 	(timeOffset is: #Number) ifFalse: [ self error ].
 	
@@ -1731,31 +1769,31 @@ nextNegativeBigNum
 	"Reads a tagged negative bignum from the input stream"
 	^-1 - self nextPositiveBigNum! !
 
-!CborTaggedValueReader methodsFor: 'as yet unclassified' stamp: 'jpb 10/3/2020 14:18:04'!
+!CborTaggedValueReader methodsFor: 'as yet unclassified' stamp: 'jpb 10/4/2020 16:35:06'!
 nextPositiveBigNum
 	"Reads a tagged positive bignum"
 	| bytes |
-	bytes _ readStream next.
+	bytes _ currentStream next.
 	
 	(bytes is: #Collection) ifFalse: [ self error ].
 	
 	^bytes inject: 0 into: [:acc :byte | ((acc bitShift: 8) bitOr: byte) ]! !
 
-!CborTaggedValueReader methodsFor: 'as yet unclassified' stamp: 'jpb 10/3/2020 14:22:32'!
+!CborTaggedValueReader methodsFor: 'as yet unclassified' stamp: 'jpb 10/4/2020 16:34:57'!
 nextStandardDateTime
 	"Reads a datetime formatted as a string from the input stream. This is a tagged value"
 	| timestampString |
-	timestampString _ readStream next.
+	timestampString _ currentStream next.
 	
 	(timestampString is: #String) ifFalse: [ self error ].
 	
 	^DateAndTime readFrom: timestampString readStream.! !
 
-!CborTaggedValueReader methodsFor: 'as yet unclassified' stamp: 'jpb 10/3/2020 16:10:07'!
+!CborTaggedValueReader methodsFor: 'as yet unclassified' stamp: 'jpb 10/4/2020 16:34:53'!
 nextURI
 	"Reads a tagged URI object. Depending on the environment"
 	
-	^readStream next! !
+	^currentStream next! !
 
 !CborUnsignedIntegerReader methodsFor: 'as yet unclassified' stamp: 'jpb 9/20/2020 17:19:53'!
 findNextValueWith: leadingByte
@@ -1804,19 +1842,19 @@ nextIndefiniteString
 	
 	^String fromUtf8: buffer! !
 
-!CborUtf8StringReader methodsFor: 'as yet unclassified' stamp: 'jpb 10/3/2020 14:01:42'!
+!CborUtf8StringReader methodsFor: 'as yet unclassified' stamp: 'jpb 10/4/2020 16:35:46'!
 nextIndefiniteStringOn: stream
 	"Reads the next indefinite string and streams it to the given stream"
 	
-	[ readStream atEnd not ]
+	[ currentStream atEnd not ]
 		whileTrue: [ |newChunk|
-			newChunk _ readStream nextValue.
+			newChunk _ currentStream nextValue.
 			
 			newChunk = #break ifTrue: [^self ].
 			(newChunk is: #String) 
 				ifTrue: [ stream nextPutAll: newChunk asByteArray ]].! !
 
-!CborUtf8StringReader methodsFor: 'as yet unclassified' stamp: 'jpb 10/3/2020 14:00:22'!
+!CborUtf8StringReader methodsFor: 'as yet unclassified' stamp: 'jpb 10/4/2020 16:35:51'!
 nextStringWithLength: readLength
 	"Reads a string with the given length from the input stream"
 	
@@ -1825,30 +1863,6 @@ nextStringWithLength: readLength
 	
 	buffer _ ByteArray new: readLength.
 	1 to: readLength do: [:idx | 
-		buffer at: idx put: readStream nextByte ].
+		buffer at: idx put: currentStream nextByte ].
 	
 	^String fromUtf8: buffer! !
-
-!CborObject methodsFor: 'as yet unclassified' stamp: 'jpb 10/3/2020 15:16:44'!
-initialize
-	value _ nil! !
-
-!CborObject methodsFor: 'as yet unclassified' stamp: 'jpb 10/3/2020 15:19:13'!
-is: querySymbol
-	^#CborObject = querySymbol or: [ super is: querySymbol ]! !
-
-!CborObject methodsFor: 'as yet unclassified' stamp: 'jpb 10/3/2020 15:16:53'!
-value
-	^value! !
-
-!CborObject methodsFor: 'as yet unclassified' stamp: 'jpb 10/3/2020 15:17:08'!
-value: newValue
-	value _ newValue ! !
-
-!CborObject class methodsFor: 'as yet unclassified' stamp: 'jpb 10/3/2020 15:16:22'!
-with: aCborItem
-	| newObject |
-	
-	newObject _ self new.
-	newObject value: aCborItem.
-	^newObject ! !
