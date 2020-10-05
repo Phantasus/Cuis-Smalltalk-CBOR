@@ -1,9 +1,9 @@
-'From Cuis 5.0 [latest update: #4360] on 4 October 2020 at 4:37:09 pm'!
+'From Cuis 5.0 [latest update: #4342] on 5 October 2020 at 5:53:51 pm'!
 'Description Provides an implementation of CBOR (the concise binary object representation) as defined in RFC 7049
 
 Author: Josef Philip Bernhart (jpb)
 License: MIT'!
-!provides: 'CBOR' 1 24!
+!provides: 'CBOR' 1 26!
 SystemOrganization addCategory: #CBOR!
 SystemOrganization addCategory: #'CBOR-Tests'!
 
@@ -16,6 +16,16 @@ TestCase subclass: #CborReaderTest
 	category: 'CBOR-Tests'!
 !classDefinition: 'CborReaderTest class' category: #'CBOR-Tests'!
 CborReaderTest class
+	instanceVariableNames: ''!
+
+!classDefinition: #CborWriterTest category: #'CBOR-Tests'!
+TestCase subclass: #CborWriterTest
+	instanceVariableNames: 'usedClass'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'CBOR-Tests'!
+!classDefinition: 'CborWriterTest class' category: #'CBOR-Tests'!
+CborWriterTest class
 	instanceVariableNames: ''!
 
 !classDefinition: #CborObject category: #CBOR!
@@ -138,9 +148,29 @@ CborValueReader subclass: #CborUtf8StringReader
 CborUtf8StringReader class
 	instanceVariableNames: ''!
 
+!classDefinition: #CborValueWriter category: #CBOR!
+CborStreamer subclass: #CborValueWriter
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'CBOR'!
+!classDefinition: 'CborValueWriter class' category: #CBOR!
+CborValueWriter class
+	instanceVariableNames: ''!
+
+!classDefinition: #CborIntegerValueWriter category: #CBOR!
+CborValueWriter subclass: #CborIntegerValueWriter
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'CBOR'!
+!classDefinition: 'CborIntegerValueWriter class' category: #CBOR!
+CborIntegerValueWriter class
+	instanceVariableNames: ''!
+
 !classDefinition: #CborWriter category: #CBOR!
 CborStreamer subclass: #CborWriter
-	instanceVariableNames: ''
+	instanceVariableNames: 'valueWriters'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'CBOR'!
@@ -148,6 +178,12 @@ CborStreamer subclass: #CborWriter
 CborWriter class
 	instanceVariableNames: ''!
 
+
+!CborReaderTest commentStamp: '<historical>' prior: 0!
+Tests reading serialized cbor values. Most of the testcases are based on examples from the actual RFC, where CBOR was defined!
+
+!CborWriterTest commentStamp: '<historical>' prior: 0!
+Tests writing serialized cbor values. Most of the testcases are based on examples from the actual RFC, where CBOR was defined.!
 
 !CborObject commentStamp: '<historical>' prior: 0!
 This object represents a container for cbor data. It's used to contain the information "the contained data is a CBOR object". Nothing more.
@@ -186,6 +222,12 @@ This value reader is intended to read major type 0 values, which are in the spec
 
 !CborUtf8StringReader commentStamp: '<historical>' prior: 0!
 This value reader is intended to read major type 3 values, which are in the specification of CBOR text strings of UTF-8 encoded values. In Cuis not all contained can be read as this would mean a fully unicode compliant base system.!
+
+!CborValueWriter commentStamp: '<historical>' prior: 0!
+Writes specialized CBOR values to the output stream!
+
+!CborIntegerValueWriter commentStamp: '<historical>' prior: 0!
+This value writer is specialized in writing integer values to the output stream!
 
 !CborWriter commentStamp: '<historical>' prior: 0!
 A so called CBOR encoder according the RFC 7049 (https://tools.ietf.org/html/rfc7049). It writes out objects according to the CBOR specification.
@@ -1277,6 +1319,24 @@ testReadingAppendixExample9
 	self assert: LargePositiveInteger equals: value class.
 	self assert: value equals: 18446744073709551615.! !
 
+!CborWriterTest methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 17:13:33'!
+setUp
+	usedClass _ CborWriter! !
+
+!CborWriterTest methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 17:34:35'!
+testWritingAppendixExample1
+	"Writes an integer value so that it matches an example of the appendix A of RFC 7049"
+	| encoder value outputStream |
+	
+	outputStream _ ByteArray new writeStream.
+	self assert: outputStream isBinary.
+	
+	encoder _ usedClass on: outputStream.
+	value _ encoder nextPut: 0.
+	
+	self assert: 0 equals: value.
+	self assert: #[16r00] equals: outputStream contents.! !
+
 !CborObject methodsFor: 'as yet unclassified' stamp: 'jpb 10/3/2020 15:16:44'!
 initialize
 	value _ nil! !
@@ -1301,9 +1361,10 @@ with: aCborItem
 	newObject value: aCborItem.
 	^newObject ! !
 
-!CborStreamer methodsFor: 'as yet unclassified' stamp: 'jpb 10/4/2020 16:20:31'!
+!CborStreamer methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 17:31:36'!
 initializeWithStream: newStream
 	"Initializes the object with the new given input stream"
+	
 	self initialize.
 	currentStream _ newStream.! !
 
@@ -1866,3 +1927,84 @@ nextStringWithLength: readLength
 		buffer at: idx put: currentStream nextByte ].
 	
 	^String fromUtf8: buffer! !
+
+!CborValueWriter methodsFor: 'testing' stamp: 'jpb 10/5/2020 17:46:01'!
+canSerialize: someObject
+	"Returns true if the writer can serialize the given object to a CBOR external representation"
+	^false! !
+
+!CborValueWriter methodsFor: 'stream - writing' stamp: 'jpb 10/5/2020 17:47:21'!
+nextPut: someObject
+	"Writes the given object to the output stream in an external CBOR binary representation"
+	^someObject! !
+
+!CborValueWriter methodsFor: 'stream - writing' stamp: 'jpb 10/5/2020 17:36:57'!
+nextPutUnsignedInteger16Bit: newInteger
+	"Writes an 16 Bit unsigned integer in big endian to the stream"
+	
+	self nextPutUnsignedInteger8Bit: (newInteger >> 8 bitAnd: 16rFF).
+	self nextPutUnsignedInteger8Bit: (newInteger bitAnd: 16rFF).
+	
+	^newInteger! !
+
+!CborValueWriter methodsFor: 'stream - writing' stamp: 'jpb 10/5/2020 17:38:35'!
+nextPutUnsignedInteger32Bit: newInteger
+	"Writes a 32 Bit unsigned integer in big endian to the stream"
+	
+	self nextPutUnsignedInteger16Bit: (newInteger >> 16 bitAnd: 16rFFFF).
+	self nextPutUnsignedInteger16Bit: (newInteger bitAnd: 16rFFFF).
+	
+	^newInteger! !
+
+!CborValueWriter methodsFor: 'stream - writing' stamp: 'jpb 10/5/2020 17:40:17'!
+nextPutUnsignedInteger64Bit: newInteger
+	"Writes a 64 Bit unsigned integer in big endian to the stream"
+	
+	self nextPutUnsignedInteger32Bit: (newInteger >> 32 bitAnd: 16rFFFF).
+	self nextPutUnsignedInteger32Bit: (newInteger bitAnd: 16rFFFF).
+	
+	^newInteger! !
+
+!CborValueWriter methodsFor: 'stream - writing' stamp: 'jpb 10/5/2020 17:40:25'!
+nextPutUnsignedInteger8Bit: newInteger
+	"Writes a byte to the output stream"
+	
+	^currentStream nextPutByte: newInteger.! !
+
+!CborIntegerValueWriter methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 17:50:41'!
+canSerialize: someObject
+	^(someObject is: #Number) & (someObject isInteger)! !
+
+!CborIntegerValueWriter methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 17:53:19'!
+nextPut: someObject
+	self nextPutUnsignedInteger8Bit: someObject.
+	
+	^someObject! !
+
+!CborWriter methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 17:52:52'!
+initialize
+	valueWriters _ {
+		CborIntegerValueWriter on: self.
+	}! !
+
+!CborWriter methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 17:45:03'!
+nextPut: newObject
+	"Writes the given object serialized to CBOR to the current output stream"
+	
+	valueWriters do: [:valueWriter | 
+		(valueWriter canSerialize: newObject	)
+			ifTrue: [ (valueWriter nextPut: newObject). ^newObject ]
+	].
+
+	^newObject! !
+
+!CborWriter methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 17:10:54'!
+nextPutAll: aCollection
+	"Writes the given collection of objects serialized one after the other to CBOR to the current output stream"! !
+
+!CborWriter methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 17:25:59'!
+nextPutByte: newByte
+	"Writes the given byte to the current output stream"
+	currentStream nextPut: newByte.
+	
+	^newByte! !
