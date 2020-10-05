@@ -1,16 +1,16 @@
-'From Cuis 5.0 [latest update: #4342] on 5 October 2020 at 5:53:51 pm'!
+'From Cuis 5.0 [latest update: #4360] on 5 October 2020 at 9:00:12 pm'!
 'Description Provides an implementation of CBOR (the concise binary object representation) as defined in RFC 7049
 
 Author: Josef Philip Bernhart (jpb)
 License: MIT'!
-!provides: 'CBOR' 1 26!
+!provides: 'CBOR' 1 27!
 SystemOrganization addCategory: #CBOR!
 SystemOrganization addCategory: #'CBOR-Tests'!
 
 
 !classDefinition: #CborReaderTest category: #'CBOR-Tests'!
 TestCase subclass: #CborReaderTest
-	instanceVariableNames: 'usedClass'
+	instanceVariableNames: 'usedClass fixtures'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'CBOR-Tests'!
@@ -20,7 +20,7 @@ CborReaderTest class
 
 !classDefinition: #CborWriterTest category: #'CBOR-Tests'!
 TestCase subclass: #CborWriterTest
-	instanceVariableNames: 'usedClass'
+	instanceVariableNames: 'usedClass outputStream fixtures'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'CBOR-Tests'!
@@ -178,6 +178,16 @@ CborStreamer subclass: #CborWriter
 CborWriter class
 	instanceVariableNames: ''!
 
+!classDefinition: #CborRfcFixtures category: #'CBOR-Tests'!
+Object subclass: #CborRfcFixtures
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'CBOR-Tests'!
+!classDefinition: 'CborRfcFixtures class' category: #'CBOR-Tests'!
+CborRfcFixtures class
+	instanceVariableNames: ''!
+
 
 !CborReaderTest commentStamp: '<historical>' prior: 0!
 Tests reading serialized cbor values. Most of the testcases are based on examples from the actual RFC, where CBOR was defined!
@@ -234,9 +244,13 @@ A so called CBOR encoder according the RFC 7049 (https://tools.ietf.org/html/rfc
 
 Not yet implemented!
 
-!CborReaderTest methodsFor: 'as yet unclassified' stamp: 'jpb 9/19/2020 18:47:11'!
+!CborRfcFixtures commentStamp: '<historical>' prior: 0!
+This class contains fixture (testdata) examples from the RFC of CBOR!
+
+!CborReaderTest methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:22:28'!
 setUp
-	usedClass _ CborReader! !
+	usedClass _ CborReader.
+	fixtures _ CborRfcFixtures new! !
 
 !CborReaderTest methodsFor: 'as yet unclassified' stamp: 'jpb 9/20/2020 00:01:04'!
 testReadingBigNums
@@ -384,368 +398,356 @@ testReadingString
 	self assert: String equals: value class.
 	self assert: value equals: 'ABCDE'.! !
 
-!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 9/20/2020 07:12:39'!
+!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/5/2020 20:23:59'!
 testReadingAppendixExample1
 	"Reads an example of the appendix A of RFC 7049"
 	| decoder value |
 	
-	decoder _ usedClass on: #[16r00] readStream.
+	decoder _ usedClass on: fixtures appendixExample1 readStream.
 	value _ decoder next.
 	
 	self assert: SmallInteger equals: value class.
 	self assert: value equals: 0.! !
 
-!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/3/2020 14:12:03'!
+!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/5/2020 20:25:40'!
 testReadingAppendixExample10
 	"Reads an example of the appendix A of RFC 7049"
 	| decoder value |
 	
-	decoder _ usedClass on: #[
-		16rC2 16r49 16r01 16r00 16r00 16r00
-		16r00 16r00 16r00 16r00 16r00
-	] readStream.
+	decoder _ usedClass on: fixtures appendixExample10 readStream.
 	value _ decoder next.
 	
 	self assert: LargePositiveInteger equals: value class.
 	self assert: 18446744073709551616 equals: value! !
 
-!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 9/20/2020 21:26:13'!
+!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/5/2020 20:26:13'!
 testReadingAppendixExample11
 	"Reads an example of the appendix A of RFC 7049"
 	| decoder value |
 	
-	decoder _ usedClass on: #[
-		16r3B 16rFF 16rFF 16rFF 16rFF
-		16rFF 16rFF 16rFF 16rFF
-	] readStream.
+	decoder _ usedClass on: fixtures appendixExample11 readStream.
 	value _ decoder next.
 	
 	self assert: LargeNegativeInteger equals: value class.
 	self assert: value equals: -18446744073709551616! !
 
-!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/3/2020 15:07:08'!
+!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/5/2020 20:26:42'!
 testReadingAppendixExample12
 	"Reads an example of the appendix A of RFC 7049"
 	| decoder value |
 	
-	decoder _ usedClass on: #[
-		16rC3 16r49 16r01 16r00 16r00 16r00
-		16r00 16r00 16r00 16r00 16r00
-	] readStream.
+	decoder _ usedClass on: fixtures appendixExample12 readStream.
 	value _ decoder next.
 	
 	self assert: LargeNegativeInteger equals: value class.
 	self assert: -18446744073709551617 equals: value! !
 
-!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 9/20/2020 07:25:01'!
+!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/5/2020 20:27:25'!
 testReadingAppendixExample13
 	"Reads an example of the appendix A of RFC 7049"
 	| decoder value |
 	
-	decoder _ usedClass on: #[16r20] readStream.
+	decoder _ usedClass on: fixtures appendixExample13 readStream.
 	value _ decoder next.
 	
 	self assert: SmallInteger equals: value class.
 	self assert: value equals: -1! !
 
-!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 9/20/2020 07:25:11'!
+!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/5/2020 20:27:45'!
 testReadingAppendixExample14
 	"Reads an example of the appendix A of RFC 7049"
 	| decoder value |
 	
-	decoder _ usedClass on: #[16r29] readStream.
+	decoder _ usedClass on: fixtures appendixExample14 readStream.
 	value _ decoder next.
 	
 	self assert: SmallInteger equals: value class.
 	self assert: value equals: -10! !
 
-!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 9/20/2020 07:25:32'!
+!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/5/2020 20:28:11'!
 testReadingAppendixExample15
 	"Reads an example of the appendix A of RFC 7049"
 	| decoder value |
 	
-	decoder _ usedClass on: #[16r38 16r63] readStream.
+	decoder _ usedClass on: fixtures appendixExample15 readStream.
 	value _ decoder next.
 	
 	self assert: SmallInteger equals: value class.
 	self assert: value equals: -100! !
 
-!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 9/20/2020 07:26:01'!
+!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/5/2020 20:28:53'!
 testReadingAppendixExample16
 	"Reads an example of the appendix A of RFC 7049"
 	| decoder value |
 	
-	decoder _ usedClass on: #[16r39 16r03 16rE7] readStream.
+	decoder _ usedClass on: fixtures appendixExample16 readStream.
 	value _ decoder next.
 	
 	self assert: SmallInteger equals: value class.
 	self assert: value equals: -1000! !
 
-!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/4/2020 13:46:49'!
+!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/5/2020 20:29:17'!
 testReadingAppendixExample17
 	"Reads an example of the appendix A of RFC 7049"
 	| decoder value |
 	
-	decoder _ usedClass on: #[16rF9 16r00 16r00] readStream.
+	decoder _ usedClass on: fixtures appendixExample17 readStream.
 	value _ decoder next.
 	
 	self assert: 0.0 equals: value! !
 
-!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/4/2020 13:46:42'!
+!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/5/2020 20:29:44'!
 testReadingAppendixExample18
 	"Reads an example of the appendix A of RFC 7049"
 	| decoder value |
 	
-	decoder _ usedClass on: #[16rF9 16r80 16r00] readStream.
+	decoder _ usedClass on: fixtures appendixExample18 readStream.
 	value _ decoder next.
 	
 	self assert: -0.0 equals: value! !
 
-!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/4/2020 13:46:55'!
+!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/5/2020 20:30:11'!
 testReadingAppendixExample19
 	"Reads an example of the appendix A of RFC 7049"
 	| decoder value |
 	
-	decoder _ usedClass on: #[16rF9 16r3C 16r00] readStream.
+	decoder _ usedClass on: fixtures appendixExample19 readStream.
 	value _ decoder next.
 	
 	self assert: 1.0 equals: value! !
 
-!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 9/20/2020 07:13:00'!
+!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/5/2020 20:25:04'!
 testReadingAppendixExample2
 	"Reads an example of the appendix A of RFC 7049"
 	| decoder value |
 	
-	decoder _ usedClass on: #[16r01] readStream.
+	decoder _ usedClass on: fixtures appendixExample2 readStream.
 	value _ decoder next.
 	
 	self assert: SmallInteger equals: value class.
 	self assert: value equals: 1.! !
 
-!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/4/2020 13:47:26'!
+!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/5/2020 20:30:55'!
 testReadingAppendixExample20
 	"Reads an example of the appendix A of RFC 7049"
 	| decoder value |
 	
-	decoder _ usedClass on: #[
-		16rFB 16r3F 16rF1 16r99 16r99
-		16r99 16r99 16r99 16r9A
-	] readStream.
+	decoder _ usedClass on: fixtures appendixExample20 readStream.
 	value _ decoder next.
 	
 	self assert: 1.1 equals: value! !
 
-!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/4/2020 13:47:00'!
+!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/5/2020 20:31:27'!
 testReadingAppendixExample21
 	"Reads an example of the appendix A of RFC 7049"
 	| decoder value |
 	
-	decoder _ usedClass on: #[16rF9 16r3E 16r00] readStream.
+	decoder _ usedClass on: fixtures appendixExample21 readStream.
 	value _ decoder next.
 	
 	self assert: 1.5 equals: value! !
 
-!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/4/2020 13:47:05'!
+!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/5/2020 20:32:01'!
 testReadingAppendixExample22
 	"Reads an example of the appendix A of RFC 7049"
 	| decoder value |
 	
-	decoder _ usedClass on: #[16rF9 16r7B 16rFF] readStream.
+	decoder _ usedClass on: fixtures appendixExample22 readStream.
 	value _ decoder next.
 	
 	self assert: 65504.0 equals: value! !
 
-!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/4/2020 13:47:31'!
+!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/5/2020 20:32:31'!
 testReadingAppendixExample23
 	"Reads an example of the appendix A of RFC 7049"
 	| decoder value |
 	
-	decoder _ usedClass on: #[16rFA 16r47 16rC3 16r50 16r00] readStream.
+	decoder _ usedClass on: fixtures appendixExample23 readStream.
 	value _ decoder next.
 	
 	self assert: 100000.0 equals: value! !
 
-!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 9/20/2020 22:17:01'!
+!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/5/2020 20:32:57'!
 testReadingAppendixExample24
 	"Reads an example of the appendix A of RFC 7049"
 	| decoder value |
 	
-	decoder _ usedClass on: #[16rFA 16r7F 16r7F 16rFF 16rFF] readStream.
+	decoder _ usedClass on: fixtures appendixExample24 readStream.
 	value _ decoder next.
 	
 	self assert: SmallFloat64 equals: value class.
 	self assert: 3.4028234663852886e+38 equals: value! !
 
-!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/4/2020 13:47:35'!
+!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/5/2020 20:33:37'!
 testReadingAppendixExample25
 	"Reads an example of the appendix A of RFC 7049"
 	| decoder value |
 	
-	decoder _ usedClass on: #[16rFB 16r7E 16r37 16rE4 16r3C 16r88 16r00 16r75 16r9C] readStream.
+	decoder _ usedClass on: fixtures appendixExample25 readStream.
 	value _ decoder next.
 	
 	self assert: 1.0e+300 equals: value! !
 
-!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 9/20/2020 22:16:40'!
+!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/5/2020 20:34:13'!
 testReadingAppendixExample26
 	"Reads an example of the appendix A of RFC 7049"
 	| decoder value |
 	
-	decoder _ usedClass on: #[16rF9 16r00 16r01] readStream.
+	decoder _ usedClass on: fixtures appendixExample26 readStream.
 	value _ decoder next.
 	
 	self assert: SmallFloat64 equals: value class.
 	self assert: 5.960464477539063e-8 equals: value! !
 
-!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 9/20/2020 22:16:30'!
+!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/5/2020 20:34:45'!
 testReadingAppendixExample27
 	"Reads an example of the appendix A of RFC 7049"
 	| decoder value |
 	
-	decoder _ usedClass on: #[16rF9 16r04 16r00] readStream.
+	decoder _ usedClass on: fixtures appendixExample27 readStream.
 	value _ decoder next.
 	
 	self assert: SmallFloat64 equals: value class.
 	self assert: 0.00006103515625 equals: value.! !
 
-!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 9/20/2020 22:13:49'!
+!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/5/2020 20:36:04'!
 testReadingAppendixExample28
 	"Reads an example of the appendix A of RFC 7049"
 	| decoder value |
 	
-	decoder _ usedClass on: #[16rF9 16rC4 16r00] readStream.
+	decoder _ usedClass on: fixtures appendixExample28 readStream.
 	value _ decoder next.
 	
 	self assert: SmallFloat64 equals: value class.
 	self assert: -4.0 equals: value! !
 
-!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/4/2020 13:47:56'!
+!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/5/2020 20:36:37'!
 testReadingAppendixExample29
 	"Reads an example of the appendix A of RFC 7049"
 	| decoder value |
 	
-	decoder _ usedClass on: #[16rFB 16rC0 16r10 16r66 16r66 16r66 16r66 16r66 16r66] readStream.
+	decoder _ usedClass on: fixtures appendixExample29 readStream.
 	value _ decoder next.
 	
 	self assert: -4.1 equals: value! !
 
-!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 9/20/2020 07:13:17'!
+!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/5/2020 20:37:07'!
 testReadingAppendixExample3
 	"Reads an example of the appendix A of RFC 7049"
 	| decoder value |
 	
-	decoder _ usedClass on: #[16r0A] readStream.
+	decoder _ usedClass on: fixtures appendixExample3 readStream.
 	value _ decoder next.
 	
 	self assert: SmallInteger equals: value class.
 	self assert: value equals: 10.! !
 
-!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/4/2020 13:47:11'!
+!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/5/2020 20:37:29'!
 testReadingAppendixExample30
 	"Reads an example of the appendix A of RFC 7049"
 	| decoder value |
 	
-	decoder _ usedClass on: #[16rF9 16r7C 16r00] readStream.
+	decoder _ usedClass on: fixtures appendixExample30 readStream.
 	value _ decoder next.
 	
 	self assert: Float infinity equals: value! !
 
-!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/4/2020 13:49:54'!
+!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/5/2020 20:37:54'!
 testReadingAppendixExample31
 	"Reads an example of the appendix A of RFC 7049"
 	| decoder value |
 	
-	decoder _ usedClass on: #[16rF9 16r7E 16r00] readStream.
+	decoder _ usedClass on: fixtures appendixExample31 readStream.
 	value _ decoder next.
 	
 	self assert: value isNaN! !
 
-!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/4/2020 13:47:19'!
+!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/5/2020 20:39:22'!
 testReadingAppendixExample32
 	"Reads an example of the appendix A of RFC 7049"
 	| decoder value |
 	
-	decoder _ usedClass on: #[16rF9 16rFC 16r00] readStream.
+	decoder _ usedClass on: fixtures appendixExample32 readStream.
 	value _ decoder next.
 	
 	self assert: Float infinity * -1 equals: value! !
 
-!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/4/2020 13:48:02'!
+!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/5/2020 20:40:06'!
 testReadingAppendixExample33
 	"Reads an example of the appendix A of RFC 7049"
 	| decoder value |
 	
-	decoder _ usedClass on: #[16rFA 16r7F 16r80 16r00 16r00] readStream.
+	decoder _ usedClass on: fixtures appendixExample33 readStream.
 	value _ decoder next.
 	
 	self assert: Float infinity equals: value.! !
 
-!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/4/2020 13:50:27'!
+!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/5/2020 20:40:28'!
 testReadingAppendixExample34
 	"Reads an example of the appendix A of RFC 7049"
 	| decoder value |
 	
-	decoder _ usedClass on: #[16rFA 16r7F 16rC0 16r00 16r00] readStream.
+	decoder _ usedClass on: fixtures appendixExample34 readStream.
 	value _ decoder next.
 	
 	self assert: value isNaN.! !
 
-!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/4/2020 13:54:11'!
+!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/5/2020 20:40:51'!
 testReadingAppendixExample35
 	"Reads an example of the appendix A of RFC 7049"
 	| decoder value |
 	
-	decoder _ usedClass on: #[16rFB 16r7F 16rF0 16r00 16r00 16r00 16r00 16r00 16r00] readStream.
+	decoder _ usedClass on: fixtures appendixExample35 readStream.
 	value _ decoder next.
 	
 	self assert: Float infinity equals: value! !
 
-!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/4/2020 13:51:01'!
+!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/5/2020 20:41:19'!
 testReadingAppendixExample36
 	"Reads an example of the appendix A of RFC 7049"
 	| decoder value |
 	
-	decoder _ usedClass on: #[16rFB 16r7F 16rF8 16r00 16r00 16r00 16r00 16r00 16r00] readStream.
+	decoder _ usedClass on: fixtures appendixExample36 readStream.
 	value _ decoder next.
 	
 	self assert: value isNaN.! !
 
-!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/4/2020 13:54:22'!
+!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/5/2020 20:41:44'!
 testReadingAppendixExample37
 	"Reads an example of the appendix A of RFC 7049"
 	| decoder value |
 	
-	decoder _ usedClass on: #[16rFB 16rFF 16rF0 16r00 16r00 16r00 16r00 16r00 16r00] readStream.
+	decoder _ usedClass on: fixtures appendixExample37 readStream.
 	value _ decoder next.
 	
 	self assert: Float infinity * -1 equals: value! !
 
-!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 9/20/2020 21:37:49'!
+!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/5/2020 20:42:20'!
 testReadingAppendixExample38
 	"Reads an example of the appendix A of RFC 7049"
 	| decoder value |
 	
-	decoder _ usedClass on: #[16rF4] readStream.
+	decoder _ usedClass on: fixtures appendixExample38 readStream.
 	value _ decoder next.
 	
 	self assert: false equals: value! !
 
-!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 9/20/2020 21:37:40'!
+!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/5/2020 20:42:41'!
 testReadingAppendixExample39
 	"Reads an example of the appendix A of RFC 7049"
 	| decoder value |
 	
-	decoder _ usedClass on: #[16rF5] readStream.
+	decoder _ usedClass on: fixtures appendixExample39 readStream.
 	value _ decoder next.
 	
 	self assert: true equals: value! !
 
-!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 9/20/2020 07:13:50'!
+!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/5/2020 20:49:29'!
 testReadingAppendixExample4
 	"Reads an example of the appendix A of RFC 7049"
 	| decoder value |
 	
-	decoder _ usedClass on: #[16r18 16r18] readStream.
+	decoder _ usedClass on: fixtures appendixExample4 readStream.
 	value _ decoder next.
 	
 	self assert: SmallInteger equals: value class.
@@ -869,12 +871,12 @@ testReadingAppendixExample49
 	
 	self assert:#[16r64 16r49 16r45 16r54 16r46] equals: value value "bytestring tag(24)"! !
 
-!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 9/20/2020 07:14:10'!
+!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/5/2020 20:43:29'!
 testReadingAppendixExample5
 	"Reads an example of the appendix A of RFC 7049"
 	| decoder value |
 	
-	decoder _ usedClass on: #[16r18 16r19] readStream.
+	decoder _ usedClass on: fixtures appendixExample5 readStream.
 	value _ decoder next.
 	
 	self assert: SmallInteger equals: value class.
@@ -985,12 +987,12 @@ testReadingAppendixExample59
 	
 	self assert: '&#65873;'  equals: value. "\ud800\udd51"! !
 
-!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 9/20/2020 07:15:17'!
+!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/5/2020 20:43:53'!
 testReadingAppendixExample6
 	"Reads an example of the appendix A of RFC 7049"
 	| decoder value |
 	
-	decoder _ usedClass on: #[16r19 16r03 16rE8 ] readStream.
+	decoder _ usedClass on: fixtures appendixExample6 readStream.
 	value _ decoder next.
 	
 	self assert: SmallInteger equals: value class.
@@ -1133,12 +1135,12 @@ testReadingAppendixExample69
 		
 	self assert: expected equals: value! !
 
-!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 9/20/2020 07:15:51'!
+!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/5/2020 20:44:17'!
 testReadingAppendixExample7
 	"Reads an example of the appendix A of RFC 7049"
 	| decoder value |
 	
-	decoder _ usedClass on: #[16r1A 16r00 16r0F 16r42 16r40 ] readStream.
+	decoder _ usedClass on: fixtures appendixExample7 readStream.
 	value _ decoder next.
 	
 	self assert: SmallInteger equals: value class.
@@ -1297,45 +1299,105 @@ testReadingAppendixExample79
 		
 	self assert: expected equals: value! !
 
-!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 9/20/2020 07:19:57'!
+!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/5/2020 20:44:50'!
 testReadingAppendixExample8
 	"Reads an example of the appendix A of RFC 7049"
 	| decoder value |
 	
-	decoder _ usedClass on: #[16r1B 16r00 16r00 16r00 16rE8 16rD4 16rA5 16r10 16r00 ] readStream.
+	decoder _ usedClass on: fixtures appendixExample8 readStream.
 	value _ decoder next.
 	
 	self assert: SmallInteger equals: value class.
 	self assert: value equals: 1000000000000.! !
 
-!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 9/20/2020 21:35:35'!
+!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/5/2020 20:45:17'!
 testReadingAppendixExample9
 	"Reads an example of the appendix A of RFC 7049"
 	| decoder value |
 	
-	decoder _ usedClass on: #[16r1B 16rFF 16rFF 16rFF 16rFF 16rFF 16rFF 16rFF 16rFF] readStream.
+	decoder _ usedClass on: fixtures appendixExample9 readStream.
 	value _ decoder next.
 	
 	self assert: LargePositiveInteger equals: value class.
 	self assert: value equals: 18446744073709551615.! !
 
-!CborWriterTest methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 17:13:33'!
+!CborWriterTest methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:46:02'!
 setUp
-	usedClass _ CborWriter! !
+	usedClass _ CborWriter.
+	outputStream _ ByteArray new writeStream.
+	fixtures _ CborRfcFixtures new! !
 
-!CborWriterTest methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 17:34:35'!
+!CborWriterTest methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:46:28'!
+testTheSetup
+	"Asserts that the testcase is based on the right assumptions"
+	self assert: outputStream isBinary.
+	self assert: fixtures isNil not.! !
+
+!CborWriterTest methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:46:49'!
 testWritingAppendixExample1
 	"Writes an integer value so that it matches an example of the appendix A of RFC 7049"
-	| encoder value outputStream |
-	
-	outputStream _ ByteArray new writeStream.
-	self assert: outputStream isBinary.
+	| encoder value  |
 	
 	encoder _ usedClass on: outputStream.
 	value _ encoder nextPut: 0.
 	
 	self assert: 0 equals: value.
-	self assert: #[16r00] equals: outputStream contents.! !
+	self assert: fixtures appendixExample1 equals: outputStream contents.! !
+
+!CborWriterTest methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:47:07'!
+testWritingAppendixExample2
+	"Writes an integer value so that it matches an example of the appendix A of RFC 7049"
+	| encoder value  |
+	
+	encoder _ usedClass on: outputStream.
+	value _ encoder nextPut: 1.
+	
+	self assert: 1 equals: value.
+	self assert: fixtures appendixExample2 equals: outputStream contents.! !
+
+!CborWriterTest methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:47:22'!
+testWritingAppendixExample3
+	"Writes an integer value so that it matches an example of the appendix A of RFC 7049"
+	| encoder value  |
+	
+	encoder _ usedClass on: outputStream.
+	value _ encoder nextPut: 10.
+	
+	self assert: 10 equals: value.
+	self assert: fixtures appendixExample3 equals: outputStream contents.! !
+
+!CborWriterTest methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:49:55'!
+testWritingAppendixExample4
+	"Writes an integer value so that it matches an example of the appendix A of RFC 7049"
+	| encoder value  |
+	
+	encoder _ usedClass on: outputStream.
+	value _ encoder nextPut: 24.
+	
+	self assert: 24 equals: value.
+	self assert: fixtures appendixExample4 equals: outputStream contents.! !
+
+!CborWriterTest methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:56:41'!
+testWritingAppendixExample5
+	"Writes an integer value so that it matches an example of the appendix A of RFC 7049"
+	| encoder value  |
+	
+	encoder _ usedClass on: outputStream.
+	value _ encoder nextPut: 25.
+	
+	self assert: 25 equals: value.
+	self assert: fixtures appendixExample5 equals: outputStream contents.! !
+
+!CborWriterTest methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:57:22'!
+testWritingAppendixExample6
+	"Writes an integer value so that it matches an example of the appendix A of RFC 7049"
+	| encoder value  |
+	
+	encoder _ usedClass on: outputStream.
+	value _ encoder nextPut: 1000.
+	
+	self assert: 1000 equals: value.
+	self assert: fixtures appendixExample6 equals: outputStream contents.! !
 
 !CborObject methodsFor: 'as yet unclassified' stamp: 'jpb 10/3/2020 15:16:44'!
 initialize
@@ -1975,11 +2037,24 @@ nextPutUnsignedInteger8Bit: newInteger
 canSerialize: someObject
 	^(someObject is: #Number) & (someObject isInteger)! !
 
-!CborIntegerValueWriter methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 17:53:19'!
+!CborIntegerValueWriter methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:59:56'!
 nextPut: someObject
-	self nextPutUnsignedInteger8Bit: someObject.
+
+	((0 to: 23) includes: someObject)
+		ifTrue: [ ^self nextPutUnsignedInteger8Bit: someObject ].
+		
+	((24 to: 255) includes: someObject) ifTrue: [
+		self nextPutUnsignedInteger8Bit: 24.
+		self nextPutUnsignedInteger8Bit: someObject.
+		^someObject].
 	
-	^someObject! !
+	((256 to:  65536) includes: someObject) ifTrue: [
+		self nextPutUnsignedInteger8Bit: 25.
+		self nextPutUnsignedInteger16Bit: someObject.
+		^someObject.	
+	].
+	
+	self error.! !
 
 !CborWriter methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 17:52:52'!
 initialize
@@ -2008,3 +2083,175 @@ nextPutByte: newByte
 	currentStream nextPut: newByte.
 	
 	^newByte! !
+
+!CborRfcFixtures methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:23:59'!
+appendixExample1
+	^#[16r00]! !
+
+!CborRfcFixtures methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:25:25'!
+appendixExample10
+	^#[
+		16rC2 16r49 16r01 16r00 16r00 16r00
+		16r00 16r00 16r00 16r00 16r00
+	] ! !
+
+!CborRfcFixtures methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:26:02'!
+appendixExample11
+	^#[
+		16r3B 16rFF 16rFF 16rFF 16rFF
+		16rFF 16rFF 16rFF 16rFF
+	]! !
+
+!CborRfcFixtures methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:26:46'!
+appendixExample12
+	^#[
+		16rC3 16r49 16r01 16r00 16r00 16r00
+		16r00 16r00 16r00 16r00 16r00
+	] ! !
+
+!CborRfcFixtures methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:27:11'!
+appendixExample13
+	^#[16r20]! !
+
+!CborRfcFixtures methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:27:36'!
+appendixExample14
+	^#[16r29]! !
+
+!CborRfcFixtures methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:27:58'!
+appendixExample15
+	^#[16r38 16r63]! !
+
+!CborRfcFixtures methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:28:43'!
+appendixExample16
+	^#[16r39 16r03 16rE7]! !
+
+!CborRfcFixtures methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:29:05'!
+appendixExample17
+	^#[16rF9 16r00 16r00] ! !
+
+!CborRfcFixtures methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:29:33'!
+appendixExample18
+	^#[16rF9 16r80 16r00]! !
+
+!CborRfcFixtures methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:30:00'!
+appendixExample19
+	^#[16rF9 16r3C 16r00]! !
+
+!CborRfcFixtures methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:24:50'!
+appendixExample2
+	^#[16r01]! !
+
+!CborRfcFixtures methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:30:43'!
+appendixExample20
+	^#[
+		16rFB 16r3F 16rF1 16r99 16r99
+		16r99 16r99 16r99 16r9A
+	] ! !
+
+!CborRfcFixtures methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:31:17'!
+appendixExample21
+	^#[16rF9 16r3E 16r00]! !
+
+!CborRfcFixtures methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:31:45'!
+appendixExample22
+	^#[16rF9 16r7B 16rFF] ! !
+
+!CborRfcFixtures methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:32:14'!
+appendixExample23
+	^#[16rFA 16r47 16rC3 16r50 16r00] ! !
+
+!CborRfcFixtures methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:32:44'!
+appendixExample24
+	^#[16rFA 16r7F 16r7F 16rFF 16rFF]! !
+
+!CborRfcFixtures methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:33:28'!
+appendixExample25
+	^#[16rFB 16r7E 16r37 16rE4 16r3C 16r88 16r00 16r75 16r9C]! !
+
+!CborRfcFixtures methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:34:05'!
+appendixExample26
+	^#[16rF9 16r00 16r01]! !
+
+!CborRfcFixtures methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:34:35'!
+appendixExample27
+	^#[16rF9 16r04 16r00]! !
+
+!CborRfcFixtures methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:35:53'!
+appendixExample28
+	^#[16rF9 16rC4 16r00]! !
+
+!CborRfcFixtures methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:36:23'!
+appendixExample29
+	^#[16rFB 16rC0 16r10 16r66 16r66 16r66 16r66 16r66 16r66]! !
+
+!CborRfcFixtures methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:36:57'!
+appendixExample3
+	^ #[16r0A] ! !
+
+!CborRfcFixtures methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:37:18'!
+appendixExample30
+	^ #[16rF9 16r7C 16r00]! !
+
+!CborRfcFixtures methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:37:44'!
+appendixExample31
+	^ #[16rF9 16r7E 16r00]! !
+
+!CborRfcFixtures methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:39:02'!
+appendixExample32
+
+	^ #[16rF9 16rFC 16r00]! !
+
+!CborRfcFixtures methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:39:56'!
+appendixExample33
+
+	^ #[16rFA 16r7F 16r80 16r00 16r00] ! !
+
+!CborRfcFixtures methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:40:18'!
+appendixExample34
+
+	^ #[16rFA 16r7F 16rC0 16r00 16r00] ! !
+
+!CborRfcFixtures methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:40:41'!
+appendixExample35
+
+	^ #[16rFB 16r7F 16rF0 16r00 16r00 16r00 16r00 16r00 16r00]! !
+
+!CborRfcFixtures methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:41:06'!
+appendixExample36
+	^#[16rFB 16r7F 16rF8 16r00 16r00 16r00 16r00 16r00 16r00]! !
+
+!CborRfcFixtures methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:41:32'!
+appendixExample37
+	^#[16rFB 16rFF 16rF0 16r00 16r00 16r00 16r00 16r00 16r00]! !
+
+!CborRfcFixtures methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:42:06'!
+appendixExample38
+	^#[16rF4]! !
+
+!CborRfcFixtures methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:42:30'!
+appendixExample39
+	^#[16rF5]! !
+
+!CborRfcFixtures methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:49:14'!
+appendixExample4
+	^#[16r18 16r18]! !
+
+!CborRfcFixtures methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:43:18'!
+appendixExample5
+	^#[16r18 16r19]! !
+
+!CborRfcFixtures methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:43:43'!
+appendixExample6
+	^#[16r19 16r03 16rE8 ]! !
+
+!CborRfcFixtures methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:44:06'!
+appendixExample7
+	^#[16r1A 16r00 16r0F 16r42 16r40 ]! !
+
+!CborRfcFixtures methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:44:38'!
+appendixExample8
+	^#[16r1B 16r00 16r00 16r00 16rE8 16rD4 16rA5 16r10 16r00 ]! !
+
+!CborRfcFixtures methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:45:06'!
+appendixExample9
+	^#[16r1B 16rFF 16rFF 16rFF 16rFF 16rFF 16rFF 16rFF 16rFF] ! !
