@@ -1,9 +1,9 @@
-'From Cuis 5.0 [latest update: #4360] on 5 October 2020 at 9:00:12 pm'!
+'From Cuis 5.0 [latest update: #4360] on 6 October 2020 at 7:36:54 pm'!
 'Description Provides an implementation of CBOR (the concise binary object representation) as defined in RFC 7049
 
 Author: Josef Philip Bernhart (jpb)
 License: MIT'!
-!provides: 'CBOR' 1 27!
+!provides: 'CBOR' 1 28!
 SystemOrganization addCategory: #CBOR!
 SystemOrganization addCategory: #'CBOR-Tests'!
 
@@ -420,7 +420,7 @@ testReadingAppendixExample10
 	self assert: LargePositiveInteger equals: value class.
 	self assert: 18446744073709551616 equals: value! !
 
-!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/5/2020 20:26:13'!
+!CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/6/2020 19:15:20'!
 testReadingAppendixExample11
 	"Reads an example of the appendix A of RFC 7049"
 	| decoder value |
@@ -429,7 +429,7 @@ testReadingAppendixExample11
 	value _ decoder next.
 	
 	self assert: LargeNegativeInteger equals: value class.
-	self assert: value equals: -18446744073709551616! !
+	self assert: -18446744073709551616 equals: value! !
 
 !CborReaderTest methodsFor: 'tests appendix A' stamp: 'jpb 10/5/2020 20:26:42'!
 testReadingAppendixExample12
@@ -1333,7 +1333,7 @@ testTheSetup
 	self assert: outputStream isBinary.
 	self assert: fixtures isNil not.! !
 
-!CborWriterTest methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:46:49'!
+!CborWriterTest methodsFor: 'as yet unclassified' stamp: 'jpb 10/6/2020 08:14:50'!
 testWritingAppendixExample1
 	"Writes an integer value so that it matches an example of the appendix A of RFC 7049"
 	| encoder value  |
@@ -1341,10 +1341,43 @@ testWritingAppendixExample1
 	encoder _ usedClass on: outputStream.
 	value _ encoder nextPut: 0.
 	
-	self assert: 0 equals: value.
+	self assert: encoder equals: value.
 	self assert: fixtures appendixExample1 equals: outputStream contents.! !
 
-!CborWriterTest methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:47:07'!
+!CborWriterTest methodsFor: 'as yet unclassified' stamp: 'jpb 10/6/2020 19:13:42'!
+testWritingAppendixExample10
+	"Writes an integer value so that it matches an example of the appendix A of RFC 7049"
+	| encoder value  |
+	
+	encoder _ usedClass on: outputStream.
+	value _ encoder nextPut: 18446744073709551616.
+	
+	self assert: encoder equals: value.
+	self assert: fixtures appendixExample10 equals: outputStream contents.! !
+
+!CborWriterTest methodsFor: 'as yet unclassified' stamp: 'jpb 10/6/2020 19:14:14'!
+testWritingAppendixExample11
+	"Writes an integer value so that it matches an example of the appendix A of RFC 7049"
+	| encoder value  |
+	
+	encoder _ usedClass on: outputStream.
+	value _ encoder nextPut: -18446744073709551616.
+	
+	self assert: encoder equals: value.
+	self assert: fixtures appendixExample11 equals: outputStream contents.! !
+
+!CborWriterTest methodsFor: 'as yet unclassified' stamp: 'jpb 10/6/2020 19:15:01'!
+testWritingAppendixExample12
+	"Writes an integer value so that it matches an example of the appendix A of RFC 7049"
+	| encoder value  |
+	
+	encoder _ usedClass on: outputStream.
+	value _ encoder nextPut: -18446744073709551617.
+	
+	self assert: encoder equals: value.
+	self assert: fixtures appendixExample12 equals: outputStream contents.! !
+
+!CborWriterTest methodsFor: 'as yet unclassified' stamp: 'jpb 10/6/2020 08:14:44'!
 testWritingAppendixExample2
 	"Writes an integer value so that it matches an example of the appendix A of RFC 7049"
 	| encoder value  |
@@ -1352,10 +1385,10 @@ testWritingAppendixExample2
 	encoder _ usedClass on: outputStream.
 	value _ encoder nextPut: 1.
 	
-	self assert: 1 equals: value.
+	self assert: encoder equals: value.
 	self assert: fixtures appendixExample2 equals: outputStream contents.! !
 
-!CborWriterTest methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:47:22'!
+!CborWriterTest methodsFor: 'as yet unclassified' stamp: 'jpb 10/6/2020 08:14:38'!
 testWritingAppendixExample3
 	"Writes an integer value so that it matches an example of the appendix A of RFC 7049"
 	| encoder value  |
@@ -1363,10 +1396,10 @@ testWritingAppendixExample3
 	encoder _ usedClass on: outputStream.
 	value _ encoder nextPut: 10.
 	
-	self assert: 10 equals: value.
+	self assert: encoder equals: value.
 	self assert: fixtures appendixExample3 equals: outputStream contents.! !
 
-!CborWriterTest methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:49:55'!
+!CborWriterTest methodsFor: 'as yet unclassified' stamp: 'jpb 10/6/2020 08:14:33'!
 testWritingAppendixExample4
 	"Writes an integer value so that it matches an example of the appendix A of RFC 7049"
 	| encoder value  |
@@ -1374,10 +1407,10 @@ testWritingAppendixExample4
 	encoder _ usedClass on: outputStream.
 	value _ encoder nextPut: 24.
 	
-	self assert: 24 equals: value.
+	self assert: encoder equals: value.
 	self assert: fixtures appendixExample4 equals: outputStream contents.! !
 
-!CborWriterTest methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:56:41'!
+!CborWriterTest methodsFor: 'as yet unclassified' stamp: 'jpb 10/6/2020 08:14:28'!
 testWritingAppendixExample5
 	"Writes an integer value so that it matches an example of the appendix A of RFC 7049"
 	| encoder value  |
@@ -1385,10 +1418,10 @@ testWritingAppendixExample5
 	encoder _ usedClass on: outputStream.
 	value _ encoder nextPut: 25.
 	
-	self assert: 25 equals: value.
+	self assert: encoder equals: value.
 	self assert: fixtures appendixExample5 equals: outputStream contents.! !
 
-!CborWriterTest methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:57:22'!
+!CborWriterTest methodsFor: 'as yet unclassified' stamp: 'jpb 10/6/2020 08:14:20'!
 testWritingAppendixExample6
 	"Writes an integer value so that it matches an example of the appendix A of RFC 7049"
 	| encoder value  |
@@ -1396,8 +1429,41 @@ testWritingAppendixExample6
 	encoder _ usedClass on: outputStream.
 	value _ encoder nextPut: 1000.
 	
-	self assert: 1000 equals: value.
+	self assert: encoder equals: value.
 	self assert: fixtures appendixExample6 equals: outputStream contents.! !
+
+!CborWriterTest methodsFor: 'as yet unclassified' stamp: 'jpb 10/6/2020 08:13:40'!
+testWritingAppendixExample7
+	"Writes an integer value so that it matches an example of the appendix A of RFC 7049"
+	| encoder value  |
+	
+	encoder _ usedClass on: outputStream.
+	value _ encoder nextPut: 1000000.
+	
+	self assert: encoder equals: value.
+	self assert: fixtures appendixExample7 equals: outputStream contents.! !
+
+!CborWriterTest methodsFor: 'as yet unclassified' stamp: 'jpb 10/6/2020 08:13:34'!
+testWritingAppendixExample8
+	"Writes an integer value so that it matches an example of the appendix A of RFC 7049"
+	| encoder value  |
+	
+	encoder _ usedClass on: outputStream.
+	value _ encoder nextPut: 1000000000000.
+	
+	self assert: encoder equals: value.
+	self assert: fixtures appendixExample8 equals: outputStream contents.! !
+
+!CborWriterTest methodsFor: 'as yet unclassified' stamp: 'jpb 10/6/2020 19:13:14'!
+testWritingAppendixExample9
+	"Writes an integer value so that it matches an example of the appendix A of RFC 7049"
+	| encoder value  |
+	
+	encoder _ usedClass on: outputStream.
+	value _ encoder nextPut: 18446744073709551615.
+	
+	self assert: encoder equals: value.
+	self assert: fixtures appendixExample9 equals: outputStream contents.! !
 
 !CborObject methodsFor: 'as yet unclassified' stamp: 'jpb 10/3/2020 15:16:44'!
 initialize
@@ -2018,12 +2084,12 @@ nextPutUnsignedInteger32Bit: newInteger
 	
 	^newInteger! !
 
-!CborValueWriter methodsFor: 'stream - writing' stamp: 'jpb 10/5/2020 17:40:17'!
+!CborValueWriter methodsFor: 'stream - writing' stamp: 'jpb 10/6/2020 17:00:11'!
 nextPutUnsignedInteger64Bit: newInteger
 	"Writes a 64 Bit unsigned integer in big endian to the stream"
 	
-	self nextPutUnsignedInteger32Bit: (newInteger >> 32 bitAnd: 16rFFFF).
-	self nextPutUnsignedInteger32Bit: (newInteger bitAnd: 16rFFFF).
+	self nextPutUnsignedInteger32Bit: (newInteger >> 32 bitAnd: 16rFFFFFFFF).
+	self nextPutUnsignedInteger32Bit: (newInteger bitAnd: 16rFFFFFFFF).
 	
 	^newInteger! !
 
@@ -2037,24 +2103,48 @@ nextPutUnsignedInteger8Bit: newInteger
 canSerialize: someObject
 	^(someObject is: #Number) & (someObject isInteger)! !
 
-!CborIntegerValueWriter methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:59:56'!
+!CborIntegerValueWriter methodsFor: 'as yet unclassified' stamp: 'jpb 10/6/2020 19:31:02'!
 nextPut: someObject
 
-	((0 to: 23) includes: someObject)
-		ifTrue: [ ^self nextPutUnsignedInteger8Bit: someObject ].
+	((0 to: 16rFFFFFFFFFFFFFFFF) includes: someObject)
+		ifTrue: [ ^self nextPutPositiveInteger: someObject ].
 		
-	((24 to: 255) includes: someObject) ifTrue: [
+	someObject > 16rFFFFFFFFFFFFFFFF
+		ifTrue: [ ^self nextPutPositiveLargeInteger: someObject ].! !
+
+!CborIntegerValueWriter methodsFor: 'as yet unclassified' stamp: 'jpb 10/6/2020 08:21:51'!
+nextPutPositiveInteger: someObject
+
+	((0 to: 23) includes: someObject)
+		ifTrue: [ self nextPutUnsignedInteger8Bit: someObject. ^self].
+		
+	((24 to: 16rFF) includes: someObject) ifTrue: [
 		self nextPutUnsignedInteger8Bit: 24.
 		self nextPutUnsignedInteger8Bit: someObject.
-		^someObject].
+		^self].
 	
-	((256 to:  65536) includes: someObject) ifTrue: [
+	((16r100 to:  16rFFFF) includes: someObject) ifTrue: [
 		self nextPutUnsignedInteger8Bit: 25.
 		self nextPutUnsignedInteger16Bit: someObject.
-		^someObject.	
+		^self
 	].
 	
-	self error.! !
+	((16r10000 to:  16rFFFFFFFF) includes: someObject) ifTrue: [
+		self nextPutUnsignedInteger8Bit: 26.
+		self nextPutUnsignedInteger32Bit: someObject.
+		^self
+	].
+
+	((16r100000000 to:  16rFFFFFFFFFFFFFFFF) includes: someObject) ifTrue: [
+		self nextPutUnsignedInteger8Bit: 27.
+		self nextPutUnsignedInteger64Bit: someObject.
+		^self
+	].! !
+
+!CborIntegerValueWriter methodsFor: 'as yet unclassified' stamp: 'jpb 10/6/2020 19:33:36'!
+nextPutPositiveLargeInteger: largeInteger
+	"Writes the given large integer to the output stream"
+	! !
 
 !CborWriter methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 17:52:52'!
 initialize
@@ -2062,27 +2152,27 @@ initialize
 		CborIntegerValueWriter on: self.
 	}! !
 
-!CborWriter methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 17:45:03'!
+!CborWriter methodsFor: 'as yet unclassified' stamp: 'jpb 10/6/2020 08:15:23'!
 nextPut: newObject
 	"Writes the given object serialized to CBOR to the current output stream"
 	
 	valueWriters do: [:valueWriter | 
 		(valueWriter canSerialize: newObject	)
-			ifTrue: [ (valueWriter nextPut: newObject). ^newObject ]
+			ifTrue: [ (valueWriter nextPut: newObject). ^self ]
 	].
 
-	^newObject! !
+	^self! !
 
 !CborWriter methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 17:10:54'!
 nextPutAll: aCollection
 	"Writes the given collection of objects serialized one after the other to CBOR to the current output stream"! !
 
-!CborWriter methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 17:25:59'!
+!CborWriter methodsFor: 'as yet unclassified' stamp: 'jpb 10/6/2020 08:15:30'!
 nextPutByte: newByte
 	"Writes the given byte to the current output stream"
 	currentStream nextPut: newByte.
 	
-	^newByte! !
+	^self! !
 
 !CborRfcFixtures methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 20:23:59'!
 appendixExample1
