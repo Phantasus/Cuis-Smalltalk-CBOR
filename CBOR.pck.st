@@ -1,9 +1,9 @@
-'From Cuis 5.0 [latest update: #4360] on 6 October 2020 at 7:36:54 pm'!
+'From Cuis 5.0 [latest update: #4360] on 8 October 2020 at 11:14:51 pm'!
 'Description Provides an implementation of CBOR (the concise binary object representation) as defined in RFC 7049
 
 Author: Josef Philip Bernhart (jpb)
 License: MIT'!
-!provides: 'CBOR' 1 28!
+!provides: 'CBOR' 1 29!
 SystemOrganization addCategory: #CBOR!
 SystemOrganization addCategory: #'CBOR-Tests'!
 
@@ -158,6 +158,16 @@ CborStreamer subclass: #CborValueWriter
 CborValueWriter class
 	instanceVariableNames: ''!
 
+!classDefinition: #CborByteStringWriter category: #CBOR!
+CborValueWriter subclass: #CborByteStringWriter
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'CBOR'!
+!classDefinition: 'CborByteStringWriter class' category: #CBOR!
+CborByteStringWriter class
+	instanceVariableNames: ''!
+
 !classDefinition: #CborIntegerValueWriter category: #CBOR!
 CborValueWriter subclass: #CborIntegerValueWriter
 	instanceVariableNames: ''
@@ -166,6 +176,16 @@ CborValueWriter subclass: #CborIntegerValueWriter
 	category: 'CBOR'!
 !classDefinition: 'CborIntegerValueWriter class' category: #CBOR!
 CborIntegerValueWriter class
+	instanceVariableNames: ''!
+
+!classDefinition: #CborTaggedValueWriter category: #CBOR!
+CborValueWriter subclass: #CborTaggedValueWriter
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'CBOR'!
+!classDefinition: 'CborTaggedValueWriter class' category: #CBOR!
+CborTaggedValueWriter class
 	instanceVariableNames: ''!
 
 !classDefinition: #CborWriter category: #CBOR!
@@ -235,6 +255,9 @@ This value reader is intended to read major type 3 values, which are in the spec
 
 !CborValueWriter commentStamp: '<historical>' prior: 0!
 Writes specialized CBOR values to the output stream!
+
+!CborByteStringWriter commentStamp: '<historical>' prior: 0!
+Writes CBOR ByteStrings!
 
 !CborIntegerValueWriter commentStamp: '<historical>' prior: 0!
 This value writer is specialized in writing integer values to the output stream!
@@ -2099,18 +2122,101 @@ nextPutUnsignedInteger8Bit: newInteger
 	
 	^currentStream nextPutByte: newInteger.! !
 
-!CborIntegerValueWriter methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 17:50:41'!
+!CborByteStringWriter methodsFor: 'as yet unclassified' stamp: 'jpb 10/8/2020 21:24:09'!
 canSerialize: someObject
-	^(someObject is: #Number) & (someObject isInteger)! !
+	^someObject isKindOf: ByteArray! !
 
-!CborIntegerValueWriter methodsFor: 'as yet unclassified' stamp: 'jpb 10/6/2020 19:31:02'!
+!CborByteStringWriter methodsFor: 'as yet unclassified' stamp: 'jpb 10/8/2020 22:39:15'!
+nextPut: newByteArray
+	| arraySize |
+	
+	arraySize _ newByteArray size.
+
+	arraySize < 24 ifTrue: [ 
+		self nextPutUnsignedInteger8Bit: (16r40 bitOr: arraySize ).
+		^self nextPutBytes: newByteArray ].
+	
+	((24 to: 16rFF) includes: arraySize) ifTrue: [
+		self nextPutUnsignedInteger8Bit: 16r58.
+		self nextPutUnsignedInteger8Bit: arraySize.
+		^self nextPutBytes: newByteArray ].
+	
+	((16r100 to:  16rFFFF) includes: arraySize) ifTrue: [
+		self nextPutUnsignedInteger8Bit: 16r59.
+		self nextPutUnsignedInteger16Bit: arraySize.
+		^self nextPutBytes: newByteArray ].
+	
+	((16r10000 to:  16rFFFFFFFF) includes: arraySize) ifTrue: [
+		self nextPutUnsignedInteger8Bit: 16r5A.
+		self nextPutUnsignedInteger32Bit: arraySize.
+		^self nextPutBytes: newByteArray ].
+	
+	((16r100000000 to:  16rFFFFFFFFFFFFFFFF) includes: arraySize) ifTrue: [
+		self nextPutUnsignedInteger8Bit: 16r5B.
+		self nextPutUnsignedInteger64Bit: arraySize.
+		^self nextPutBytes: newByteArray ].
+	
+	self error.
+	! !
+
+!CborByteStringWriter methodsFor: 'as yet unclassified' stamp: 'jpb 10/8/2020 22:16:43'!
+nextPutBytes: newByteArray
+	"Writes the given byte array out to the output stream"
+	newByteArray do: [:byte | currentStream nextPutByte: byte]! !
+
+!CborIntegerValueWriter methodsFor: 'as yet unclassified' stamp: 'jpb 10/8/2020 23:12:55'!
+canSerialize: someObject
+	(someObject is: #Number) & (someObject isInteger)
+		ifFalse: [ ^false ].
+		
+	"large positive integers are handled in the tagged value writer"
+	someObject > 16rFFFFFFFFFFFFFFFF
+		ifTrue: [ ^false ].
+		
+	"negative large integers are handled in the tagged value writer"
+	(someObject < -18446744073709551616)
+		ifTrue: [ ^false ].
+		
+	^true! !
+
+!CborIntegerValueWriter methodsFor: 'as yet unclassified' stamp: 'jpb 10/8/2020 23:14:33'!
 nextPut: someObject
 
-	((0 to: 16rFFFFFFFFFFFFFFFF) includes: someObject)
-		ifTrue: [ ^self nextPutPositiveInteger: someObject ].
+	(someObject >= 0)
+		ifTrue: [ self nextPutPositiveInteger: someObject ]
+		ifFalse: [ self nextPutNegativeInteger: someObject ]! !
+
+!CborIntegerValueWriter methodsFor: 'as yet unclassified' stamp: 'jpb 10/8/2020 23:10:58'!
+nextPutNegativeInteger: someObject
+	| integer |
+	
+	integer _ -1 - someObject.
+	
+	((0 to: 23) includes: integer)
+		ifTrue: [ self nextPutUnsignedInteger8Bit: ((1 << 5) bitOr: integer). ^self].
 		
-	someObject > 16rFFFFFFFFFFFFFFFF
-		ifTrue: [ ^self nextPutPositiveLargeInteger: someObject ].! !
+	((24 to: 16rFF) includes: integer) ifTrue: [
+		self nextPutUnsignedInteger8Bit: 56.
+		self nextPutUnsignedInteger8Bit: integer.
+		^self].
+	
+	((16r100 to:  16rFFFF) includes: integer) ifTrue: [
+		self nextPutUnsignedInteger8Bit: 57.
+		self nextPutUnsignedInteger16Bit: integer.
+		^self
+	].
+	
+	((16r10000 to:  16rFFFFFFFF) includes: integer) ifTrue: [
+		self nextPutUnsignedInteger8Bit: 58.
+		self nextPutUnsignedInteger32Bit: integer.
+		^self
+	].
+
+	((16r100000000 to:  16rFFFFFFFFFFFFFFFF) includes: integer) ifTrue: [
+		self nextPutUnsignedInteger8Bit: 59.
+		self nextPutUnsignedInteger64Bit: integer.
+		^self
+	].! !
 
 !CborIntegerValueWriter methodsFor: 'as yet unclassified' stamp: 'jpb 10/6/2020 08:21:51'!
 nextPutPositiveInteger: someObject
@@ -2141,15 +2247,63 @@ nextPutPositiveInteger: someObject
 		^self
 	].! !
 
-!CborIntegerValueWriter methodsFor: 'as yet unclassified' stamp: 'jpb 10/6/2020 19:33:36'!
+!CborTaggedValueWriter methodsFor: 'as yet unclassified' stamp: 'jpb 10/8/2020 22:44:41'!
+canSerialize: someObject
+
+	(someObject isInteger & (someObject > 16rFFFFFFFFFFFFFFFF))
+		ifTrue: [ ^true ].
+		
+	(someObject isInteger & (someObject < -16rFFFFFFFFFFFFFFFF))
+		ifTrue: [ ^true ].
+		
+	^false! !
+
+!CborTaggedValueWriter methodsFor: 'as yet unclassified' stamp: 'jpb 10/8/2020 22:45:58'!
+nextPut: someObject
+	someObject > 16rFFFFFFFFFFFFFFFF
+		ifTrue: [ ^self nextPutPositiveLargeInteger: someObject ].
+		
+	someObject < -16rFFFFFFFFFFFFFFFF
+		ifTrue: [ ^self nextPutNegativeLargeInteger: someObject ].! !
+
+!CborTaggedValueWriter methodsFor: 'as yet unclassified' stamp: 'jpb 10/8/2020 22:43:07'!
+nextPutNegativeLargeInteger: largeInteger
+	"Writes the given large integer to the output stream"
+	| bytes number |
+	number _ -1 - (largeInteger copy).
+	
+	bytes _ ByteArray streamContents: [:bufferStream | 
+		[number > 0 ]
+			whileTrue: [
+				bufferStream nextPut: (number bitAnd: 16rFF).
+				number _ number bitShift: -8]].
+	
+	"writing it out backwards to ensure big-endianess"
+	self nextPutUnsignedInteger8Bit: 16rC3 .
+	currentStream nextPut: bytes reverse.! !
+
+!CborTaggedValueWriter methodsFor: 'as yet unclassified' stamp: 'jpb 10/8/2020 22:23:52'!
 nextPutPositiveLargeInteger: largeInteger
 	"Writes the given large integer to the output stream"
-	! !
+	| bytes number |
+	number _ largeInteger copy.
+	
+	bytes _ ByteArray streamContents: [:bufferStream | 
+		[number > 0 ]
+			whileTrue: [
+				bufferStream nextPut: (number bitAnd: 16rFF).
+				number _ number bitShift: -8]].
+	
+	"writing it out backwards to ensure big-endianess"
+	self nextPutUnsignedInteger8Bit:16rC2 .
+	currentStream nextPut: bytes reverse.! !
 
-!CborWriter methodsFor: 'as yet unclassified' stamp: 'jpb 10/5/2020 17:52:52'!
+!CborWriter methodsFor: 'as yet unclassified' stamp: 'jpb 10/8/2020 22:24:26'!
 initialize
 	valueWriters _ {
 		CborIntegerValueWriter on: self.
+		CborByteStringWriter on: self.
+		CborTaggedValueWriter on: self.
 	}! !
 
 !CborWriter methodsFor: 'as yet unclassified' stamp: 'jpb 10/6/2020 08:15:23'!
