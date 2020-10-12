@@ -1,9 +1,9 @@
-'From Cuis 5.0 [latest update: #4360] on 12 October 2020 at 8:16:09 pm'!
+'From Cuis 5.0 [latest update: #4360] on 12 October 2020 at 9:16:46 pm'!
 'Description Provides an implementation of CBOR (the concise binary object representation) as defined in RFC 7049
 
 Author: Josef Philip Bernhart (jpb)
 License: MIT'!
-!provides: 'CBOR' 1 31!
+!provides: 'CBOR' 1 32!
 SystemOrganization addCategory: #CBOR!
 SystemOrganization addCategory: #'CBOR-Tests'!
 
@@ -1997,6 +1997,79 @@ testWritingAppendixExample63
 	self assert: expected equals: decoder next.
 	! !
 
+!CborWriterTest methodsFor: 'as yet unclassified' stamp: 'jpb 10/12/2020 20:59:56'!
+testWritingAppendixExample64
+	"Writes an integer value so that it matches an example of the appendix A of RFC 7049"
+	| encoder value expected decoder |
+	
+	encoder _ usedClass on: outputStream.
+	expected _ Dictionary new.
+	value _ encoder nextPut: expected.
+
+	self assert: encoder equals: value.
+	decoder _ self newDecoderOn: outputStream contents.
+	
+	self assert: fixtures appendixExample64 equals: outputStream contents.
+	self assert: expected equals: decoder next.
+	! !
+
+!CborWriterTest methodsFor: 'as yet unclassified' stamp: 'jpb 10/12/2020 21:08:22'!
+testWritingAppendixExample65
+	"Writes an integer value so that it matches an example of the appendix A of RFC 7049"
+	| encoder value expected decoder |
+	
+	encoder _ usedClass on: outputStream.
+	expected _ Dictionary new.
+	expected at: 1 put: 2.
+	expected at: 3 put: 4.
+	
+	value _ encoder nextPut: expected.
+
+	self assert: encoder equals: value.
+	decoder _ self newDecoderOn: outputStream contents.
+	
+	self assert: expected equals: decoder next.
+	! !
+
+!CborWriterTest methodsFor: 'as yet unclassified' stamp: 'jpb 10/12/2020 21:08:09'!
+testWritingAppendixExample66
+	"Writes an integer value so that it matches an example of the appendix A of RFC 7049"
+	| encoder value expected decoder |
+	
+	encoder _ usedClass on: outputStream.
+	expected _ Dictionary new.
+	expected at: 'a' put: 1.
+	expected at: 'b' put: #(2 3).
+	
+	value _ encoder nextPut: expected.
+
+	self assert: encoder equals: value.
+	decoder _ self newDecoderOn: outputStream contents.
+	
+	self assert: expected equals: decoder next.
+	! !
+
+!CborWriterTest methodsFor: 'as yet unclassified' stamp: 'jpb 10/12/2020 21:08:29'!
+testWritingAppendixExample67
+	"Writes an integer value so that it matches an example of the appendix A of RFC 7049"
+	| encoder value expected decoder |
+	
+	encoder _ usedClass on: outputStream.
+	expected _ Dictionary new.
+	expected at: 'a' put: 'A'.
+	expected at: 'b' put: 'B'.
+	expected at: 'c' put: 'C'.
+	expected at: 'd' put: 'D'.
+	expected at: 'e' put: 'E'.
+	
+	value _ encoder nextPut: expected.
+
+	self assert: encoder equals: value.
+	decoder _ self newDecoderOn: outputStream contents.
+	
+	self assert: expected equals: decoder next.
+	! !
+
 !CborWriterTest methodsFor: 'as yet unclassified' stamp: 'jpb 10/6/2020 08:13:40'!
 testWritingAppendixExample7
 	"Writes an integer value so that it matches an example of the appendix A of RFC 7049"
@@ -2758,10 +2831,14 @@ nextPut: newTimestamp
 canSerialize: someObject
 	^someObject is: #Dictionary! !
 
-!CborDictionaryWriter methodsFor: 'as yet unclassified' stamp: 'jpb 10/12/2020 20:08:33'!
+!CborDictionaryWriter methodsFor: 'as yet unclassified' stamp: 'jpb 10/12/2020 21:04:49'!
+initialize
+	majorType _ 5 << 5! !
+
+!CborDictionaryWriter methodsFor: 'as yet unclassified' stamp: 'jpb 10/12/2020 21:03:22'!
 nextPutItems: newDictionary
 	"Writes the items of the given dictionary in a key/value pair to the output stream"
-	newDictionary do: [:assoc| 
+	newDictionary associationsDo: [:assoc| 
 		currentStream nextPut: assoc key.
 		currentStream nextPut: assoc value
 	]! !
@@ -2946,13 +3023,14 @@ canSerialize: someObject
 nextPut: someObject
 	self nextPutUnsignedInteger8Bit: 16rF7! !
 
-!CborWriter methodsFor: 'as yet unclassified' stamp: 'jpb 10/12/2020 19:58:41'!
+!CborWriter methodsFor: 'as yet unclassified' stamp: 'jpb 10/12/2020 21:02:38'!
 initialize
 	valueWriters _ {
 		CborIntegerValueWriter on: self.
 		CborByteStringWriter on: self.
 		CborUtf8StringWriter on: self.
 		CborArrayWriter on: self.
+		CborDictionaryWriter on: self.
 		CborTaggedValueWriter on: self.
 		CborFloatWriter on: self.
 		CborUndefinedValueWriter on: self.
