@@ -1,9 +1,9 @@
-'From Cuis 5.0 [latest update: #4360] on 12 October 2020 at 9:16:46 pm'!
+'From Cuis 5.0 [latest update: #4360] on 13 October 2020 at 8:06:41 pm'!
 'Description Provides an implementation of CBOR (the concise binary object representation) as defined in RFC 7049
 
 Author: Josef Philip Bernhart (jpb)
 License: MIT'!
-!provides: 'CBOR' 1 32!
+!provides: 'CBOR' 1 33!
 SystemOrganization addCategory: #CBOR!
 SystemOrganization addCategory: #'CBOR-Tests'!
 
@@ -2555,9 +2555,17 @@ nextBase16Conversion
 	"Reads from the input stream a bytearray"
 	^currentStream next	! !
 
+!CborTaggedValueReader methodsFor: 'as yet unclassified' stamp: 'jpb 10/13/2020 20:05:06'!
+nextBase64
+	^currentStream next! !
+
 !CborTaggedValueReader methodsFor: 'as yet unclassified' stamp: 'jpb 10/4/2020 16:35:26'!
 nextBase64Conversion
 	"Reads a tagged bytearray from the input stream"
+	^currentStream next! !
+
+!CborTaggedValueReader methodsFor: 'as yet unclassified' stamp: 'jpb 10/13/2020 20:04:40'!
+nextBase64Url
 	^currentStream next! !
 
 !CborTaggedValueReader methodsFor: 'as yet unclassified' stamp: 'jpb 10/3/2020 15:05:22'!
@@ -2591,6 +2599,11 @@ nextEpochDateTime
 	
 	^DateAndTime unixTimeSeconds: timeOffset.! !
 
+!CborTaggedValueReader methodsFor: 'as yet unclassified' stamp: 'jpb 10/13/2020 20:06:22'!
+nextMimeMessage
+	"Returns a tagged mime message"
+	^currentStream next! !
+
 !CborTaggedValueReader methodsFor: 'as yet unclassified' stamp: 'jpb 10/3/2020 15:09:01'!
 nextNegativeBigNum
 	"Reads a tagged negative bignum from the input stream"
@@ -2605,6 +2618,11 @@ nextPositiveBigNum
 	(bytes is: #Collection) ifFalse: [ self error ].
 	
 	^bytes inject: 0 into: [:acc :byte | ((acc bitShift: 8) bitOr: byte) ]! !
+
+!CborTaggedValueReader methodsFor: 'as yet unclassified' stamp: 'jpb 10/13/2020 20:05:53'!
+nextRegex
+	"Returns a tagged regex object"
+	^currentStream next! !
 
 !CborTaggedValueReader methodsFor: 'as yet unclassified' stamp: 'jpb 10/4/2020 16:34:57'!
 nextStandardDateTime
